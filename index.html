@@ -3,10 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vocal Pitch Tuner</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+    <title>Vocal Pitch Tuner – Online Real-Time Pitch Detector</title>
+    <meta name="description" content="Vocal Pitch Tuner – Detect your singing notes in real time online. Perfect for singers and musicians. Free, fast, and accurate.">
+    <meta name="keywords" content="pitch detector, vocal tuner, online tuner, singing notes, music tool, real-time pitch">
+    <meta name="author" content="Mahyar CR">
+    <meta property="og:title" content="Vocal Pitch Tuner – Online Real-Time Pitch Detector">
+    <meta property="og:description" content="Detect your singing notes live and improve your vocal skills. Free online pitch tuner for everyone!">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://mahyarcr7788-web.github.io/Voice-note/">
+    <meta property="og:image" content="URL_TO_PREVIEW_IMAGE">
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
 
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <style>
         :root {
             --bg-color: #1a1a2e;
             --primary-color: #16213e;
@@ -18,79 +28,82 @@
             --in-tune-color: #2ecc71;
         }
 
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
         body {
             font-family: 'Poppins', sans-serif;
             background-color: var(--bg-color);
             color: var(--text-color);
             display: flex;
             flex-direction: column;
-            justify-content: center;
             align-items: center;
-            height: 100vh;
-            margin: 0;
-            overflow: hidden;
+            min-height: 100vh;
+            padding: 20px;
         }
 
         h1 {
-            color: var(--text-color);
-            margin-bottom: 20px;
+            margin-top: 20px;
+            margin-bottom: 15px;
+            text-align: center;
         }
 
-        #startButton {
+        #startButton, #stopButton {
             background-color: var(--accent-color);
             color: var(--text-color);
             border: none;
-            padding: 15px 30px;
-            font-size: 1.2rem;
+            padding: 12px 25px;
+            font-size: 1.1rem;
             font-weight: 600;
             border-radius: 50px;
             cursor: pointer;
             transition: all 0.3s ease;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
             box-shadow: 0 4px 15px rgba(233, 69, 96, 0.4);
         }
 
-        #startButton:hover {
-            transform: translateY(-3px);
+        #startButton:hover, #stopButton:hover {
+            transform: translateY(-2px);
             box-shadow: 0 6px 20px rgba(233, 69, 96, 0.6);
         }
 
         #tuner-container {
-            display: none; /* Hidden until started */
+            display: none;
             flex-direction: column;
             align-items: center;
             background-color: var(--primary-color);
-            padding: 40px;
+            padding: 30px 20px;
             border-radius: 20px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
-            width: 90%;
+            width: 100%;
             max-width: 400px;
+            transition: all 0.3s ease;
         }
 
         #note {
-            font-size: 6rem;
+            font-size: 5rem;
             font-weight: 700;
             color: var(--text-color);
-            height: 120px;
-            line-height: 120px;
+            height: 100px;
+            line-height: 100px;
+            text-align: center;
         }
 
         #octave {
-            font-size: 2rem;
-            color: var(--text-color);
+            font-size: 1.8rem;
             opacity: 0.7;
-            margin-top: -20px;
-            height: 40px;
+            margin-top: -10px;
+            margin-bottom: 20px;
+            text-align: center;
         }
 
         #tuner-visual {
             width: 100%;
-            height: 30px;
+            height: 25px;
             background-color: var(--secondary-color);
             border-radius: 15px;
-            margin-top: 30px;
             position: relative;
             overflow: hidden;
+            margin-bottom: 20px;
         }
 
         #tuner-needle {
@@ -100,34 +113,46 @@
             position: absolute;
             left: 50%;
             transform: translateX(-50%);
+            transition: left 0.1s ease;
             z-index: 2;
         }
 
         #tuner-bar {
             height: 100%;
             background-color: var(--flat-color);
-            width: 50%;
             position: absolute;
-            left: 0;
-            transform-origin: right;
-            border-radius: 15px 0 0 15px;
+            left: 50%;
+            transform-origin: left;
+            border-radius: 0 15px 15px 0;
             z-index: 1;
         }
 
         #cents {
-            font-size: 1.5rem;
-            margin-top: 20px;
-            height: 30px;
-            color: var(--text-color);
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+            text-align: center;
             opacity: 0.8;
         }
 
+        #message {
+            font-size: 1rem;
+            margin-bottom: 10px;
+            text-align: center;
+            color: #ffcc00;
+        }
+
+        @media (max-width: 500px) {
+            #note { font-size: 4rem; height: 80px; line-height: 80px; }
+            #octave { font-size: 1.5rem; }
+        }
     </style>
 </head>
 <body>
 
     <h1>Vocal Pitch Tuner</h1>
+    <div id="message">Click "Start" and allow microphone access</div>
     <button id="startButton">Start</button>
+    <button id="stopButton" style="display:none;">Stop</button>
 
     <div id="tuner-container">
         <div id="note">--</div>
@@ -141,28 +166,24 @@
 
     <script>
         const startButton = document.getElementById('startButton');
+        const stopButton = document.getElementById('stopButton');
         const tunerContainer = document.getElementById('tuner-container');
         const noteEl = document.getElementById('note');
         const octaveEl = document.getElementById('octave');
         const centsEl = document.getElementById('cents');
         const tunerBar = document.getElementById('tuner-bar');
+        const tunerNeedle = document.getElementById('tuner-needle');
+        const message = document.getElementById('message');
 
         const noteStrings = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
-        
-        let audioContext;
-        let analyser;
-        let mediaStreamSource;
-        let buflen = 2048;
-        let buf = new Float32Array(buflen);
-        let rafID = null;
+        let audioContext, analyser, mediaStreamSource, rafID;
+        let buflen = 2048, buf = new Float32Array(buflen);
 
-        const C0 = 16.35; // Frequency of C0
-        const A4 = 440; // Standard tuning frequency
+        const A4 = 440;
 
         function noteFromPitch(frequency) {
             if (frequency === 0) return null;
-            const noteNum = 12 * (Math.log(frequency / A4) / Math.log(2)) + 57; // 57 is A4
-            return noteNum;
+            return 12 * (Math.log(frequency / A4) / Math.log(2)) + 57;
         }
 
         function frequencyFromNoteNumber(note) {
@@ -173,65 +194,41 @@
             return Math.floor(1200 * Math.log(frequency / frequencyFromNoteNumber(note)) / Math.log(2));
         }
 
-        // Autocorrelation algorithm for pitch detection
         function autoCorrelate(buf, sampleRate) {
             const SIZE = buf.length;
             const rms = Math.sqrt(buf.reduce((acc, val) => acc + val * val, 0) / SIZE);
-
-            // Minimum volume threshold
-            if (rms < 0.01) {
-                return 0; // Not enough signal
-            }
+            if (rms < 0.01) return 0;
 
             let r1 = 0, r2 = SIZE - 1;
             const threshold = 0.2;
-            for (let i = 0; i < SIZE / 2; i++) {
-                if (Math.abs(buf[i]) < threshold) { r1 = i; break; }
-            }
-            for (let i = 1; i < SIZE / 2; i++) {
-                if (Math.abs(buf[SIZE - i]) < threshold) { r2 = SIZE - i; break; }
-            }
-            buf = buf.slice(r1, r2);
-            const newSize = buf.length;
-
+            for (let i = 0; i < SIZE / 2; i++) if (Math.abs(buf[i]) < threshold) { r1 = i; break; }
+            for (let i = 1; i < SIZE / 2; i++) if (Math.abs(buf[SIZE - i]) < threshold) { r2 = SIZE - i; break; }
+            const newBuf = buf.slice(r1, r2);
+            const newSize = newBuf.length;
             const c = new Array(newSize).fill(0);
-            for (let i = 0; i < newSize; i++) {
-                for (let j = 0; j < newSize - i; j++) {
-                    c[i] = c[i] + buf[j] * buf[j + i];
-                }
-            }
+            for (let i = 0; i < newSize; i++)
+                for (let j = 0; j < newSize - i; j++)
+                    c[i] += newBuf[j] * newBuf[j + i];
 
-            let d = 0;
-            while (c[d] > c[d + 1]) d++;
+            let d = 0; while (c[d] > c[d+1]) d++;
             let maxval = -1, maxpos = -1;
-            for (let i = d; i < newSize; i++) {
-                if (c[i] > maxval) {
-                    maxval = c[i];
-                    maxpos = i;
-                }
-            }
+            for (let i = d; i < newSize; i++) if (c[i] > maxval) { maxval = c[i]; maxpos = i; }
             let T0 = maxpos;
-
-            const x1 = c[T0 - 1], x2 = c[T0], x3 = c[T0 + 1];
-            const a = (x1 + x3 - 2 * x2) / 2;
-            const b = (x3 - x1) / 2;
-            if (a) T0 = T0 - b / (2 * a);
-
-            return sampleRate / T0;
+            const x1 = c[T0-1], x2 = c[T0], x3 = c[T0+1];
+            const a = (x1 + x3 - 2*x2)/2;
+            const b = (x3 - x1)/2;
+            if (a) T0 = T0 - b/(2*a);
+            return audioContext.sampleRate / T0;
         }
 
         function updateUI(pitch) {
             if (!pitch) {
-                noteEl.innerText = "--";
-                octaveEl.innerText = "";
-                centsEl.innerText = "Cents: --";
+                noteEl.innerText = "--"; octaveEl.innerText = ""; centsEl.innerText = "Cents: --";
                 updateTunerBar(0, 'var(--in-tune-color)');
                 return;
             }
-
             const noteNum = noteFromPitch(pitch);
             if (noteNum === null) return;
-
             const note = Math.round(noteNum);
             const noteName = noteStrings[note % 12];
             const octave = Math.floor(note / 12) - 1;
@@ -239,80 +236,64 @@
 
             noteEl.innerText = noteName;
             octaveEl.innerText = "Octave " + octave;
-            centsEl.innerText = `Cents: ${cents > 0 ? '+' : ''}${cents}`;
+            centsEl.innerText = `Cents: ${cents>0?'+':''}${cents}`;
 
-            // Update tuner bar
-            let barColor;
-            if (cents < -2) {
-                barColor = 'var(--flat-color)'; // Flat
-            } else if (cents > 2) {
-                barColor = 'var(--sharp-color)'; // Sharp
-            } else {
-                barColor = 'var(--in-tune-color)'; // In tune
-            }
-            updateTunerBar(cents, barColor);
+            let color = cents < -2 ? 'var(--flat-color)' : cents > 2 ? 'var(--sharp-color)' : 'var(--in-tune-color)';
+            updateTunerBar(cents, color);
+            tunerNeedle.style.left = `${50 + Math.max(-50, Math.min(50, cents))}%`;
         }
 
         function updateTunerBar(cents, color) {
-            // Cents range from -50 (full flat) to +50 (full sharp)
-            const clampedCents = Math.max(-50, Math.min(50, cents));
-            
-            // Map cents (-50 to 50) to a transform value (0% to 100%)
-            const transformValue = (clampedCents + 50); // Now 0 to 100
-            
+            const clamped = Math.max(-50, Math.min(50, cents));
             tunerBar.style.backgroundColor = color;
-            
-            if (clampedCents < 0) {
-                // Flat
-                tunerBar.style.right = '50%';
-                tunerBar.style.left = 'auto';
-                tunerBar.style.transformOrigin = 'right';
-                tunerBar.style.borderRadius = '15px 0 0 15px';
-                // Scale from 0 to 1, where -50 cents = 1 (full bar), 0 cents = 0
-                tunerBar.style.transform = `scaleX(${-clampedCents / 50})`;
+            if (clamped < 0) {
+                tunerBar.style.right = '50%'; tunerBar.style.left = 'auto';
+                tunerBar.style.transformOrigin = 'right'; tunerBar.style.borderRadius = '15px 0 0 15px';
+                tunerBar.style.transform = `scaleX(${-clamped/50})`;
             } else {
-                // Sharp
-                tunerBar.style.left = '50%';
-                tunerBar.style.right = 'auto';
-                tunerBar.style.transformOrigin = 'left';
-                tunerBar.style.borderRadius = '0 15px 15px 0';
-                // Scale from 0 to 1, where 0 cents = 0, 50 cents = 1 (full bar)
-                tunerBar.style.transform = `scaleX(${clampedCents / 50})`;
+                tunerBar.style.left = '50%'; tunerBar.style.right = 'auto';
+                tunerBar.style.transformOrigin = 'left'; tunerBar.style.borderRadius = '0 15px 15px 0';
+                tunerBar.style.transform = `scaleX(${clamped/50})`;
             }
         }
-
 
         function updatePitch() {
             analyser.getFloatTimeDomainData(buf);
             const pitch = autoCorrelate(buf, audioContext.sampleRate);
             updateUI(pitch);
-            rafID = window.requestAnimationFrame(updatePitch);
+            rafID = requestAnimationFrame(updatePitch);
         }
 
         async function start() {
             try {
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                message.innerText = "Requesting microphone access...";
+                const stream = await navigator.mediaDevices.getUserMedia({audio:true});
+                audioContext = new (window.AudioContext||window.webkitAudioContext)();
                 mediaStreamSource = audioContext.createMediaStreamSource(stream);
-                
                 analyser = audioContext.createAnalyser();
                 analyser.fftSize = 2048;
-                
                 mediaStreamSource.connect(analyser);
-                
+                tunerContainer.style.display = 'flex';
+                startButton.style.display = 'none';
+                stopButton.style.display = 'inline-block';
+                message.innerText = "Sing or play a note!";
                 updatePitch();
-
-            } catch (err) {
-                alert("Error getting microphone access: " + err.message);
+            } catch(err) {
+                message.innerText = "Error: " + err.message;
             }
         }
 
-        startButton.addEventListener('click', () => {
-            start();
-            startButton.style.display = 'none';
-            tunerContainer.style.display = 'flex';
-        });
+        function stop() {
+            if (rafID) cancelAnimationFrame(rafID);
+            if (audioContext) audioContext.close();
+            tunerContainer.style.display = 'none';
+            startButton.style.display = 'inline-block';
+            stopButton.style.display = 'none';
+            message.innerText = "Click 'Start' and allow microphone access";
+        }
 
+        startButton.addEventListener('click', start);
+        stopButton.addEventListener('click', stop);
     </script>
 </body>
 </html>
